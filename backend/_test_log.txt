@@ -1,0 +1,18 @@
+[database] Type detecte : SQLite
+[database] Fichier SQLite : C:\Users\asdf\Desktop\ChefUnitPlus_DEV\backend\database\chefunitplus.db
+[database] SQLite connecte
+Base de donnees connectee
+[ensureSchema] Verification des tables...
+[ensureSchema] [OK] Migrations terminees
+[ensureSchema] 11/11 tables verifiees (0 echecs)
+
+===========================================================
+  ChefUnitPlus Backend
+===========================================================
+  URL    : http://localhost:3000
+  API    : http://localhost:3000/api
+  Health : http://localhost:3000/api/health
+===========================================================
+
+[2026-10-16T09:41:28.372Z] GET /health -> 200 (57ms)
+[2026-10-16T09:41:28.426Z] GET / -> 200 (6ms)

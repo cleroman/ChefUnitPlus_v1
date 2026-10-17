@@ -1,0 +1,546 @@
+===============================================================
+ 1. LISTE DES TABLES
+===============================================================
+
+  certificates                   : 0 ligne(s)
+  complaints                     : 0 ligne(s)
+  emergency_contacts             : 0 ligne(s)
+  enrollments                    : 3 ligne(s)
+  formations                     : 6 ligne(s)
+  lessons                        : 0 ligne(s)
+  modules                        : 0 ligne(s)
+  password_requests              : 0 ligne(s)
+  payments                       : 0 ligne(s)
+  scout_camps                    : 0 ligne(s)
+  scout_groups                   : 6 ligne(s)
+  user_details                   : 3 ligne(s)
+  users                          : 8 ligne(s)
+
+===============================================================
+ 2. STRUCTURE + ECHANTILLON DES TABLES
+===============================================================
+
+--- TABLE : certificates ---
+  Colonnes :
+    - id                        TEXT          PK
+    - user_id                   TEXT          
+    - formation_id              TEXT          
+    - certificate_number        TEXT          
+    - pdf_url                   TEXT          
+    - issued_at                 DATETIME      
+    - expires_at                DATETIME      
+  (table vide)
+
+--- TABLE : complaints ---
+  Colonnes :
+    - id                        TEXT          PK
+    - user_id                   TEXT          
+    - subject                   TEXT         NOT NULL 
+    - description               TEXT         NOT NULL 
+    - category                  TEXT          
+    - status                    TEXT          
+    - priority                  TEXT          
+    - admin_response            TEXT          
+    - responded_by              TEXT          
+    - responded_at              DATETIME      
+    - created_at                DATETIME      
+  (table vide)
+
+--- TABLE : emergency_contacts ---
+  Colonnes :
+    - id                        TEXT          PK
+    - user_id                   TEXT          
+    - nom                       TEXT         NOT NULL 
+    - post_nom                  TEXT          
+    - prenom                    TEXT          
+    - telephone                 TEXT         NOT NULL 
+    - adresse                   TEXT          
+    - relation                  TEXT          
+    - created_at                DATETIME      
+  (table vide)
+
+--- TABLE : enrollments ---
+  Colonnes :
+    - id                        TEXT          PK
+    - learner_id                TEXT          
+    - formation_id              TEXT          
+    - formation_title           TEXT          
+    - status                    TEXT          
+    - amount_paid               REAL          
+    - payment_ref               TEXT          
+    - director_comment          TEXT          
+    - requested_at              DATETIME      
+    - paid_at                   DATETIME      
+    - validated_at              DATETIME      
+    - phone                     TEXT          
+    - account_name              TEXT          
+    - payment_otp               TEXT          
+    - director_otp              TEXT          
+    - approved_at               DATETIME      
+    - validated_by              TEXT          
+    - receipt_number            TEXT          
+  Echantillon (2 lignes) :
+    Ligne 1 :
+      id                     = 675611af-7775-4b53-81ed-4c9c9ddf03cb
+      learner_id             = 872785fd-3b35-4330-814d-7924df9436c3
+      formation_id           = e8d05954-de1f-435e-9847-c9f050b97812
+      formation_title        = NULL
+      status                 = pending_payment
+      amount_paid            = 0
+      payment_ref            = NULL
+      director_comment       = NULL
+      requested_at           = 2026-09-15 08:30:47
+      paid_at                = NULL
+      validated_at           = NULL
+      phone                  = NULL
+      account_name           = NULL
+      payment_otp            = NULL
+      director_otp           = NULL
+      approved_at            = NULL
+      validated_by           = NULL
+      receipt_number         = NULL
+    Ligne 2 :
+      id                     = 86295b97-faff-44b3-8481-a57454f72eb1
+      learner_id             = 872785fd-3b35-4330-814d-7924df9436c3
+      formation_id           = e290d88e-3b35-4d80-b59d-e6a8e7bac753
+      formation_title        = NULL
+      status                 = approved
+      amount_paid            = 100
+      payment_ref            = NULL
+      director_comment       = felicitation
+      requested_at           = 2026-09-15 09:09:13
+      paid_at                = 2026-09-15 09:09:39
+      validated_at           = 2026-09-15 09:11:16
+      phone                  = +243819621872
+      account_name           = MAJILA MUZAILA Grace
+      payment_otp            = 171241
+      director_otp           = 123434
+      approved_at            = 2026-09-15 09:11:16
+      validated_by           = dcddb8e8-8022-4718-91c3-ba2c2e49abd0
+      receipt_number         = REC-20260915-9316
+
+--- TABLE : formations ---
+  Colonnes :
+    - id                        TEXT          PK
+    - title                     TEXT         NOT NULL 
+    - description               TEXT          
+    - price                     REAL          
+    - currency                  TEXT          
+    - cover_image               TEXT          
+    - director_id               TEXT          
+    - is_published              INTEGER       
+    - enrolled_count            INTEGER       
+    - created_at                DATETIME      
+    - updated_at                DATETIME      
+    - type                      TEXT          
+    - start_date                DATE          
+    - end_date                  DATE          
+    - total_hours               INTEGER       
+    - trainer_id                TEXT          
+    - pdf_path                  TEXT          
+    - fiche_technique_path      TEXT          
+    - max_participants          INTEGER       
+  Echantillon (2 lignes) :
+    Ligne 1 :
+      id                     = e8d05954-de1f-435e-9847-c9f050b97812
+      title                  = Leadership Fondamental
+      description            = Les bases du leadership moderne.
+      price                  = 25
+      currency               = USD
+      cover_image            = NULL
+      director_id            = dcddb8e8-8022-4718-91c3-ba2c2e49abd0
+      is_published           = 1
+      enrolled_count         = 0
+      created_at             = 2026-09-10 11:24:20
+      updated_at             = 2026-09-10 11:24:20
+      type                   = training
+      start_date             = NULL
+      end_date               = NULL
+      total_hours            = 0
+      trainer_id             = NULL
+      pdf_path               = NULL
+      fiche_technique_path   = NULL
+      max_participants       = 0
+    Ligne 2 :
+      id                     = 6ee0689f-e973-44e4-9775-41154592c574
+      title                  = Gestion de Projet
+      description            = Methodes agiles et outils pour piloter un projet de bout en ...
+      price                  = 35
+      currency               = USD
+      cover_image            = NULL
+      director_id            = dcddb8e8-8022-4718-91c3-ba2c2e49abd0
+      is_published           = 1
+      enrolled_count         = 0
+      created_at             = 2026-09-15 08:20:00
+      updated_at             = 2026-09-15 08:20:00
+      type                   = training
+      start_date             = NULL
+      end_date               = NULL
+      total_hours            = 0
+      trainer_id             = NULL
+      pdf_path               = NULL
+      fiche_technique_path   = NULL
+      max_participants       = 0
+
+--- TABLE : lessons ---
+  Colonnes :
+    - id                        TEXT          PK
+    - module_id                 TEXT          
+    - title                     TEXT         NOT NULL 
+    - content                   TEXT          
+    - type                      TEXT          
+    - video_url                 TEXT          
+    - pdf_url                   TEXT          
+    - audio_url                 TEXT          
+    - duration                  INTEGER       
+    - order_index               INTEGER       
+    - is_preview                INTEGER       
+    - created_at                DATETIME      
+    - updated_at                DATETIME      
+  (table vide)
+
+--- TABLE : modules ---
+  Colonnes :
+    - id                        TEXT          PK
+    - formation_id              TEXT          
+    - trainer_id                TEXT          
+    - title                     TEXT         NOT NULL 
+    - description               TEXT          
+    - duration                  INTEGER       
+    - order_index               INTEGER       
+    - created_at                DATETIME      
+    - updated_at                DATETIME      
+    - start_date                DATE          
+    - end_date                  DATE          
+    - hours                     INTEGER       
+    - pdf_path                  TEXT          
+    - status                    TEXT          
+    - created_by                TEXT          
+    - approved_by               TEXT          
+    - approved_at               DATETIME      
+    - director_comment          TEXT          
+  (table vide)
+
+--- TABLE : password_requests ---
+  Colonnes :
+    - id                        TEXT          PK
+    - user_id                   TEXT          
+    - reason                    TEXT          
+    - status                    TEXT          
+    - new_password_hash         TEXT          
+    - processed_by              TEXT          
+    - processed_at              DATETIME      
+    - created_at                DATETIME      
+  (table vide)
+
+--- TABLE : payments ---
+  Colonnes :
+    - id                        TEXT          PK
+    - enrollment_id             TEXT          
+    - order_number              TEXT          
+    - transaction_id            TEXT          
+    - amount                    REAL          
+    - currency                  TEXT          
+    - status                    TEXT          
+    - provider                  TEXT          
+    - created_at                DATETIME      
+    - updated_at                DATETIME      
+  (table vide)
+
+--- TABLE : scout_camps ---
+  Colonnes :
+    - id                        TEXT          PK
+    - user_id                   TEXT          
+    - nom_camp                  TEXT         NOT NULL 
+    - annee                     INTEGER       
+    - lieu                      TEXT          
+    - description               TEXT          
+    - created_at                DATETIME      
+  (table vide)
+
+--- TABLE : scout_groups ---
+  Colonnes :
+    - id                        TEXT          PK
+    - name                      TEXT         NOT NULL 
+    - region                    TEXT          
+    - district                  TEXT          
+    - description               TEXT          
+    - director_id               TEXT          
+    - members_count             INTEGER       
+    - is_active                 INTEGER       
+    - created_by                TEXT          
+    - created_at                DATETIME      
+    - updated_at                DATETIME      
+  Echantillon (2 lignes) :
+    Ligne 1 :
+      id                     = fbb0e921-faae-4032-90f4-148520dfc676
+      name                   = tutimize
+      region                 = mpala
+      district               = fungurume
+      description            = mouvement antenne kakanda
+      director_id            = NULL
+      members_count          = 0
+      is_active              = 1
+      created_by             = 8e0590c8-d6c1-461b-9b4a-a4d304369a94
+      created_at             = 2026-09-15 06:25:38
+      updated_at             = 2026-09-15 06:25:38
+    Ligne 2 :
+      id                     = 4fbce9ab-b658-4145-a73a-e3883f869a7c
+      name                   = tutimize
+      region                 = fungurume
+      district               = kakanda
+      description            = groupe en expension
+      director_id            = NULL
+      members_count          = 0
+      is_active              = 1
+      created_by             = 8e0590c8-d6c1-461b-9b4a-a4d304369a94
+      created_at             = 2026-09-15 06:29:23
+      updated_at             = 2026-09-15 06:29:23
+
+--- TABLE : user_details ---
+  Colonnes :
+    - user_id                   TEXT          PK
+    - address                   TEXT          
+    - city                      TEXT          
+    - country                   TEXT          
+    - birth_date                DATE          
+    - education_level           TEXT          
+    - education_field           TEXT          
+    - education_institution     TEXT          
+    - scout_formation           TEXT          
+    - scout_role                TEXT          
+    - group_id                  TEXT          
+    - profile_photo_url         TEXT          
+    - bio                       TEXT          
+    - updated_at                DATETIME      
+    - province                  TEXT          
+    - commune                   TEXT          
+    - quartier                  TEXT          
+    - avenue                    TEXT          
+    - numero                    TEXT          
+    - groupe_scout              TEXT          
+    - numero_affiliation        TEXT          
+    - district                  TEXT          
+    - association               TEXT          
+    - profession                TEXT          
+    - branche                   TEXT          
+    - date_entree_scout         DATE          
+    - fonction_scout            TEXT          
+    - antecedents_medicaux      TEXT          
+    - attestation_camp_url      TEXT          
+    - engagement_accepte        INTEGER       
+    - engagement_date           DATETIME      
+    - post_nom                  TEXT          
+    - prenom                    TEXT          
+    - prenom2                   TEXT          
+    - sexe                      TEXT          
+    - date_naissance            TEXT          
+    - lieu_naissance            TEXT          
+    - ville                     TEXT          
+    - pays                      TEXT          
+    - camps                     TEXT          
+    - contacts_urgence          TEXT          
+    - created_at                TEXT          
+    - id                        TEXT          
+  Echantillon (2 lignes) :
+    Ligne 1 :
+      user_id                = 872785fd-3b35-4330-814d-7924df9436c3
+      address                = NULL
+      city                   = Kolwezi
+      country                = RDC
+      birth_date             = 2000-01-01
+      education_level        = NULL
+      education_field        = NULL
+      education_institution  = NULL
+      scout_formation        = NULL
+      scout_role             = NULL
+      group_id               = NULL
+      profile_photo_url      = NULL
+      bio                    = NULL
+      updated_at             = 2026-09-14 15:17:25
+      province               = LUALABA
+      commune                = Fungurume
+      quartier               = Bissipi
+      avenue                 = Vision
+      numero                 = 4
+      groupe_scout           = Saint Bartelemie
+      numero_affiliation     = SC-2026-03-243
+      district               = LOMBE
+      association            = fesco
+      profession             = Informaticien
+      branche                = troupe
+      date_entree_scout      = 2020-09-14
+      fonction_scout         = chef de troupe
+      antecedents_medicaux   = aucun
+      attestation_camp_url   = NULL
+      engagement_accepte     = 1
+      engagement_date        = 2026-09-14T15:17:25.716Z
+      post_nom               = NULL
+      prenom                 = NULL
+      prenom2                = NULL
+      sexe                   = NULL
+      date_naissance         = NULL
+      lieu_naissance         = NULL
+      ville                  = NULL
+      pays                   = RDC
+      camps                  = NULL
+      contacts_urgence       = NULL
+      created_at             = NULL
+      id                     = 872785fd-3b35-4330-814d-7924df9436c3
+    Ligne 2 :
+      user_id                = 03c1da17-a31c-48b2-9af7-12616948bf93
+      address                = NULL
+      city                   = NULL
+      country                = RDC
+      birth_date             = NULL
+      education_level        = NULL
+      education_field        = NULL
+      education_institution  = NULL
+      scout_formation        = NULL
+      scout_role             = NULL
+      group_id               = NULL
+      profile_photo_url      = NULL
+      bio                    = NULL
+      updated_at             = 2026-09-17T07:02:31.090Z
+      province               = Kinshasa
+      commune                = Gombe
+      quartier               = Centre
+      avenue                 = Avenue Test
+      numero                 = 123
+      groupe_scout           = Groupe Test 2
+      numero_affiliation     = KIN-2024-TEST2
+      district               = Kinshasa
+      association            = ASC
+      profession             = NULL
+      branche                = troupe
+      date_entree_scout      = 2020-01-01
+      fonction_scout         = NULL
+      antecedents_medicaux   = NULL
+      attestation_camp_url   = NULL
+      engagement_accepte     = 1
+      engagement_date        = 2026-09-17T07:02:31.090Z
+      post_nom               = Test2
+      prenom                 = Scout2
+      prenom2                = NULL
+      sexe                   = homme
+      date_naissance         = 2000-01-15
+      lieu_naissance         = Kinshasa
+      ville                  = Kinshasa
+      pays                   = RDC
+      camps                  = NULL
+      contacts_urgence       = NULL
+      created_at             = 2026-09-17T07:02:31.090Z
+      id                     = 4b7cf6d2-0d49-41e5-a2ca-3ee1d62331b5
+
+--- TABLE : users ---
+  Colonnes :
+    - id                        TEXT          PK
+    - full_name                 TEXT         NOT NULL 
+    - email                     TEXT         NOT NULL 
+    - phone                     TEXT          
+    - password_hash             TEXT         NOT NULL 
+    - role                      TEXT          
+    - avatar_url                TEXT          
+    - is_active                 INTEGER       
+    - created_at                DATETIME      
+    - updated_at                DATETIME      
+    - group_id                  TEXT          
+    - post_nom                  TEXT          
+    - prenom                    TEXT          
+    - sexe                      TEXT          
+    - date_naissance            DATE          
+    - lieu_naissance            TEXT          
+    - photo_url                 TEXT          
+  Echantillon (2 lignes) :
+    Ligne 1 :
+      id                     = 8e0590c8-d6c1-461b-9b4a-a4d304369a94
+      full_name              = Admin Principal
+      email                  = admin@chefunitplus.com
+      phone                  = 243890000000
+      password_hash          = $2a$10$Djny5UotiBPjIX2bUnOFxuiUISB.cKILI79JQt6cHgAcj7nPpi9VG
+      role                   = admin
+      avatar_url             = NULL
+      is_active              = 1
+      created_at             = 2026-09-10 11:24:20
+      updated_at             = 2026-09-10 11:24:20
+      group_id               = NULL
+      post_nom               = NULL
+      prenom                 = NULL
+      sexe                   = NULL
+      date_naissance         = NULL
+      lieu_naissance         = NULL
+      photo_url              = NULL
+    Ligne 2 :
+      id                     = dcddb8e8-8022-4718-91c3-ba2c2e49abd0
+      full_name              = Directeur Test
+      email                  = directeur@chefunitplus.com
+      phone                  = 243890000001
+      password_hash          = $2a$10$nLomZtiZ9jXK5yxxk9vSF.1MOActYBF6LfYDdpnUZg0Wf996LLwnW
+      role                   = directeur
+      avatar_url             = NULL
+      is_active              = 1
+      created_at             = 2026-09-10 11:24:20
+      updated_at             = 2026-09-10 11:24:20
+      group_id               = NULL
+      post_nom               = NULL
+      prenom                 = NULL
+      sexe                   = NULL
+      date_naissance         = NULL
+      lieu_naissance         = NULL
+      photo_url              = NULL
+
+===============================================================
+ 3. RELATIONS (FOREIGN KEYS)
+===============================================================
+
+--- certificates ---
+  formation_id -> formations.id
+  user_id -> users.id
+
+--- complaints ---
+  responded_by -> users.id
+  user_id -> users.id
+
+--- emergency_contacts ---
+  user_id -> users.id
+
+--- enrollments ---
+  formation_id -> formations.id
+  learner_id -> users.id
+
+--- formations ---
+  director_id -> users.id
+
+--- lessons ---
+  module_id -> modules.id
+
+--- modules ---
+  trainer_id -> users.id
+  formation_id -> formations.id
+
+--- password_requests ---
+  processed_by -> users.id
+  user_id -> users.id
+
+--- payments ---
+  enrollment_id -> enrollments.id
+
+--- scout_camps ---
+  user_id -> users.id
+
+--- scout_groups ---
+  created_by -> users.id
+  director_id -> users.id
+
+--- user_details ---
+  group_id -> scout_groups.id
+  user_id -> users.id
+
+--- users ---
+  group_id -> scout_groups.id
+
+===============================================================
+ 4. RESUME
+===============================================================
+
+  Total tables : 13

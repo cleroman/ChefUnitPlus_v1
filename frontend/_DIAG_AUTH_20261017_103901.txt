@@ -1,0 +1,314 @@
+﻿
+======================================================================
+  1. api_client.dart — Comment le token est-il envoyé ?
+======================================================================
+
+Fichier : C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart
+
+--- Recherche de 'Authorization' ---
+  L3: // Gere les headers, tokens, timeouts, erreurs normalisees
+  L20: String? _token;
+  L25: // GESTION DU TOKEN
+  L27: void setToken(String? token) => _token = token;
+  L28: String? get token => _token;
+  L29: bool get isAuthenticated => _token != null && _token!.isNotEmpty;
+  L31: void clearToken() => _token = null;
+  L39: if (_token != null)
+  L40: ApiConstants.authorization: '${ApiConstants.bearerPrefix}$_token',
+  L244: final token = _getToken();
+  L245: debugPrint('[ApiClient.uploadFile] token: ${token != null ? "${token.substring(0, 20)}..." : "NULL"}');
+  L246: if (token != null) {
+  L247: request.headers['Authorization'] = 'Bearer $token';
+  L249: debugPrint('[ApiClient.uploadFile] ATTENTION: token est NULL !');
+  L289: // Helper pour recuperer le token
+  L303: if (_token != null) {
+  L304: request.headers['Authorization'] = 'Bearer $_token';
+  L337: String? _getToken() {
+  L338: return token;
+
+--- Méthode 'get' complète ---
+
+> C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:46:  Future<Map<String, dynamic>> get(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:47:    String path, {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:48:    Map<String, String>? query,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:49:  }) async {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:50:    final uri = _buildUri(path, 
+query);
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:51:    return _request(() => 
+_client.get(uri, headers: _headers));
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:52:  }
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:53:
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:54:  Future<Map<String, dynamic>> post(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:55:    String path, {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:56:    Map<String, dynamic>? body,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:57:  }) async {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:58:    final uri = _buildUri(path);
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:59:    return _request(() => 
+_client.post(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:60:          uri,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:61:          headers: _headers,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:62:          body: body != null ? 
+jsonEncode(body) : null,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:63:        ));
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:64:  }
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:65:
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:66:  Future<Map<String, dynamic>> put(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:67:    String path, {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:68:    Map<String, dynamic>? body,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:69:  }) async {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:70:    final uri = _buildUri(path);
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:71:    return _request(() => 
+_client.put(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:72:          uri,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:73:          headers: _headers,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:74:          body: body != null ? 
+jsonEncode(body) : null,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:75:        ));
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:76:  }
+
+
+
+
+--- Méthode '_headers' ou getter headers ---
+
+> C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:36:  Map<String, String> get _headers 
+=> {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:37:        ApiConstants.contentType: 
+ApiConstants.applicationJson,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:38:        'Accept': 
+ApiConstants.applicationJson,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:39:        if (_token != null)
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:40:          
+ApiConstants.authorization: '${ApiConstants.bearerPrefix}$_token',
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:41:      };
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:42:
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:43:  // 
+===========================================================
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:44:  // METHODES HTTP
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:45:  // 
+===========================================================
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:46:  Future<Map<String, dynamic>> get(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:47:    String path, {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:48:    Map<String, String>? query,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:49:  }) async {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:50:    final uri = _buildUri(path, 
+query);
+> C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:51:    return _request(() => 
+_client.get(uri, headers: _headers));
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:52:  }
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:53:
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:54:  Future<Map<String, dynamic>> post(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:55:    String path, {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:56:    Map<String, dynamic>? body,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:57:  }) async {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:58:    final uri = _buildUri(path);
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:59:    return _request(() => 
+_client.post(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:60:          uri,
+> C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:61:          headers: _headers,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:62:          body: body != null ? 
+jsonEncode(body) : null,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:63:        ));
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:64:  }
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:65:
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:66:  Future<Map<String, dynamic>> put(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:67:    String path, {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:68:    Map<String, dynamic>? body,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:69:  }) async {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:70:    final uri = _buildUri(path);
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:71:    return _request(() => 
+_client.put(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:72:          uri,
+> C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:73:          headers: _headers,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:74:          body: body != null ? 
+jsonEncode(body) : null,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:75:        ));
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:76:  }
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:77:
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:78:  Future<Map<String, dynamic>> patch(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:79:    String path, {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:80:    Map<String, dynamic>? body,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:81:  }) async {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:82:    final uri = _buildUri(path);
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:83:    return _request(() => 
+_client.patch(
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:84:          uri,
+> C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:85:          headers: _headers,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:86:          body: body != null ? 
+jsonEncode(body) : null,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:87:        ));
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:88:  }
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:89:
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:90:  Future<Map<String, dynamic>> 
+delete(String path) async {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:91:    final uri = _buildUri(path);
+> C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:92:    return _request(() => 
+_client.delete(uri, headers: _headers));
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:93:  }
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:94:
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:95:  // 
+===========================================================
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:96:  // HELPERS INTERNES
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:97:  // 
+===========================================================
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:98:  Uri _buildUri(String path, 
+[Map<String, String>? query]) {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:99:    final fullPath = 
+path.startsWith('http')
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:100:        ? path
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:101:        : 
+'${ApiConstants.apiUrl}$path';
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:102:    final uri = Uri.parse(fullPath);
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:103:    if (query == null || 
+query.isEmpty) return uri;
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:104:    return 
+uri.replace(queryParameters: {
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:105:      ...uri.queryParameters,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:106:      ...query,
+  C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\api_client.dart:107:    });
+
+
+
+
+======================================================================
+  2. auth_service.dart — Comment le token est-il stocké ?
+======================================================================
+
+Fichier : C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\auth_service.dart
+
+--- Recherche de 'saveToken' / 'setToken' / 'login' ---
+  L18: final StorageService storage;
+  L46: api.setToken(response.token);
+  L78: api.setToken(response.token);
+  L207: api.setToken(user.token);
+
+======================================================================
+  3. storage_service.dart — Comment le token est-il lu/écrit ?
+======================================================================
+
+Fichier : C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\services\storage_service.dart
+
+--- Contenu complet ---
+// =============================================================
+// ChefUnitPlus - Persistance locale (SharedPreferences)
+// Stocke le token, l'utilisateur, et des flags de session
+// =============================================================
+
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/user.dart';
+
+
+class StorageService {
+  // ===========================================================
+  // Y- CL?S
+  // ===========================================================
+  static const String _kToken = 'auth_token';
+  static const String _kUser = 'auth_user';
+  static const String _kOnboardingSeen = 'onboarding_seen';
+  static const String _kLastSync = 'last_sync_at';
+
+  // ===========================================================
+  // Y' SESSION UTILISATEUR
+  // ===========================================================
+  Future<void> saveUser(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kToken, user.token ?? '');
+    await prefs.setString(_kUser, jsonEncode(user.toJson()));
+  }
+
+  Future<User?> getUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_kUser);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return User.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      await clearSession();
+      return null;
+    }
+  }
+
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kToken);
+  }
+
+  Future<void> clearSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kToken);
+    await prefs.remove(_kUser);
+  }
+
+  // ===========================================================
+  // Ys? ONBOARDING
+  // ===========================================================
+  Future<bool> hasSeenOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kOnboardingSeen) ?? false;
+  }
+
+  Future<void> markOnboardingSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kOnboardingSeen, true);
+  }
+
+  // ===========================================================
+  // Y"" SYNC
+  // ===========================================================
+  Future<DateTime?> getLastSync() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_kLastSync);
+    return raw != null ? DateTime.tryParse(raw) : null;
+  }
+
+  Future<void> setLastSync(DateTime time) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kLastSync, time.toIso8601String());
+  }
+
+  // ===========================================================
+  // Y-' RESET COMPLET
+  // ===========================================================
+  Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+}
+
+======================================================================
+  4. main.dart — Chargement du token au démarrage
+======================================================================
+
+Fichier : C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\main.dart
+
+--- Recherche de 'token' / 'SharedPreferences' ---
+  L52: final storageService = StorageService();
+  L53: final authService = AuthService(api: apiClient, storage: storageService);
+  L55: // ============ CHARGEMENT DU TOKEN AU DEMARRAGE ============
+  L56: // Sans ceci, apres un refresh de page, ApiClient._token est null
+  L59: final savedUser = await storageService.getUser();
+  L61: savedUser.token != null &&
+  L62: savedUser.token!.isNotEmpty) {
+  L63: apiClient.setToken(savedUser.token);
+  L64: debugPrint('[main] Token charge depuis SharedPreferences');
+  L66: debugPrint('[main] Pas de token sauvegarde (utilisateur non connecte)');
+  L69: debugPrint('[main] Erreur chargement token : $e');
+  L82: Provider<StorageService>.value(value: storageService),
+
+======================================================================
+  5. api_constants.dart — URL de base
+======================================================================
+
+Fichier : C:\Users\asdf\Desktop\ChefUnitPlus_DEV\frontend\lib\core\constants\api_constants.dart
+
+  L15: // BASE URL DYNAMIQUE (localhost en dev, Render en prod)
+  L17: static String get baseUrl {
+  L21: // En local (localhost ou 127.0.0.1)
+  L22: if (host == 'localhost' || host == '127.0.0.1') {
+  L23: return 'http://localhost:3000';
+  L29: return 'http://localhost:3000';
+  L32: static String get apiUrl => '$baseUrl$apiVersion';
+  L132: static const String flexPaieBaseUrl = 'https://api.flexpaie.com/v1';

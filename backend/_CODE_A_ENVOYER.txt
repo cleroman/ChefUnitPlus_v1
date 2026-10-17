@@ -1,0 +1,532 @@
+﻿================================================================================
+  CODE A ANALYSER - ChefUnitPlus
+  Date : 2026-10-16 09:20:36
+================================================================================
+
+
+================================================================================
+  FONCTION : registerScout
+  Lignes 83 a 323  (241 lignes)
+================================================================================
+
+L  83: exports.registerScout = async (req, res) => {
+L  84:   // ===== VALIDATION OBLIGATOIRE =====
+L  85:   const validation = validateRegistration(req.body);
+L  86:   if (!validation.ok) {
+L  87:     return res.status(422).json({
+L  88:       success: false,
+L  89:       message: 'Champs obligatoires manquants',
+L  90:       errors: validation.errors,
+L  91:     });
+L  92:   }
+L  93:   // ===== FIN VALIDATION =====
+L  94: 
+L  95:   try {
+L  96:     const payload = req.body;
+L  97: 
+L  98:     console.log('=== REGISTER SCOUT ===');
+L  99:     console.log('Payload recu:', JSON.stringify(payload, null, 2));
+L 100: 
+L 101:     // ========== VALIDATION ==========
+L 102:     const required = ['email', 'phone', 'password', 'nom', 'prenom'];
+L 103:     const missing = required.filter((k) => !payload[k]);
+L 104:     if (missing.length > 0) {
+L 105:       return res.status(400).json({
+L 106:         success: false,
+L 107:         message: `Champs obligatoires manquants : ${missing.join(', ')}`,
+L 108:       });
+L 109:     }
+L 110: 
+L 111:     const email = String(payload.email).trim().toLowerCase();
+L 112:     const confirmationEmail = String(payload.confirmationEmail || email).trim().toLowerCase();
+L 113:     const phone = String(payload.phone).trim();
+L 114:     const password = String(payload.password);
+L 115: 
+L 116:     if (password.length < 6) {
+L 117:       return res.status(400).json({
+L 118:         success: false,
+L 119:         message: 'Mot de passe : minimum 6 caracteres',
+L 120:       });
+L 121:     }
+L 122: 
+L 123:     // ========== VERIFIER EMAIL UNIQUE ==========
+L 124:     const existing = await db
+L 125:       .prepare('SELECT id FROM users WHERE email = ?')
+L 126:       .get(email);
+L 127: 
+L 128:     if (existing) {
+L 129:       return res.status(409).json({
+L 130:         success: false,
+L 131:         message: 'Un compte existe deja avec cet email',
+L 132:       });
+L 133:     }
+L 134: 
+L 135:     // ========== HASH PASSWORD ==========
+L 136:     const passwordHash = await bcrypt.hash(password, 10);
+L 137: 
+L 138:     // ========== CREER USER ==========
+L 139:     const userId = uuidv4();
+L 140:     const now = new Date().toISOString();
+L 141: 
+L 142:     const fullName = `${payload.prenom || '} ${payload.postNom || payload.nom || '}`.trim();
+L 143: 
+L 144:     // ========== CREER UN GROUPE CUSTOM SI DEMANDE ==========
+L 145:     let finalGroupId = payload.scoutGroupId || payload.groupId || null;
+L 146:     if (!finalGroupId && payload.customGroupName) {
+L 147:       try {
+L 148:         const customGroupId = uuidv4();
+L 149:         const checkGroup = await db.prepare('SELECT id FROM scout_groups WHERE name = ?').get(payload.customGroupName);
+L 150:         if (checkGroup) {
+L 151:           finalGroupId = checkGroup.id;
+L 152:           console.log(`  [i] Groupe existant reutilise : ${payload.customGroupName}`);
+L 153:         } else {
+L 154:           db.prepare(`
+L 155:             INSERT INTO scout_groups (id, name, description, is_active, created_at, updated_at)
+L 156:             VALUES (?, ?, ?, 0, ?, ?)
+L 157:           `).run(customGroupId, payload.customGroupName, 'Cree automatiquement a l inscription', now, now);
+L 158:           finalGroupId = customGroupId;
+L 159:           console.log(`  [OK] Groupe custom cree : ${payload.customGroupName}`);
+L 160:         }
+L 161:       } catch (e) {
+L 162:         console.log(`  [!!] Groupe custom non cree : ${e.message}`);
+L 163:       }
+L 164:     }
+L 165: 
+L 166:     const insertUser = await db.prepare(`
+L 167:       INSERT INTO users (
+L 168:         id, full_name, email, confirmation_email, phone, password_hash, role,
+L 169:         post_nom, prenom, sexe, date_naissance, lieu_naissance,
+L 170:         group_id, totem, adresse,
+L 171:         avatar_url, photo_url,
+L 172:         is_active, created_at, updated_at
+L 173:       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+L 174:     `);
+L 175: 
+L 176:     insertUser.run(
+L 177:       userId,
+L 178:       fullName,
+L 179:       email,
+L 180:       confirmationEmail,
+L 181:       phone,
+L 182:       passwordHash,
+L 183:       'utilisateur',
+L 184:       payload.postNom || payload.nom || null,
+L 185:       payload.prenom || null,
+L 186:       payload.sexe || null,
+L 187:       payload.dateNaissance || null,
+L 188:       payload.lieuNaissance || null,
+L 189:       finalGroupId,
+L 190:       payload.totem || null,
+L 191:       payload.adresse || null,
+L 192:       payload.avatarUrl || payload.photoUrl || null,
+L 193:       payload.photoUrl || payload.avatarUrl || null,
+L 194:       now,
+L 195:       now
+L 196:     );
+L 197: 
+L 198:     console.log(`  [OK] User cree : ${userId}`);
+L 199: 
+L 200:     // ========== CREER USER_DETAILS ==========
+L 201:     const detailsId = uuidv4();
+L 202: 
+L 203:     const insertDetails = await db.prepare(`
+L 204:       INSERT INTO user_details (
+L 205:         id, user_id,
+L 206:         post_nom, prenom, prenom2, sexe, date_naissance, lieu_naissance,
+L 207:         province, ville, commune, quartier, avenue, numero, pays,
+L 208:         groupe_scout, numero_affiliation, district, association,
+L 209:         branche, date_entree_scout, fonction_scout,
+L 210:         profession, niveau_etude, antecedents_medicaux, camps, contacts_urgence,
+L 211:         engagement_accepte, engagement_date,
+L 212:         totem, fonctions_camps, personnes_prevenir, conditions_engagement, qr_code_data,
+L 213:         address, city, country, birth_date,
+L 214:         education_level, education_field, education_institution,
+L 215:         scout_formation, scout_role, group_id, profile_photo_url, bio,
+L 216:         attestation_camp_url,
+L 217:         created_at, updated_at
+L 218:       ) VALUES (
+L 219:         ?, ?,
+L 220:         ?, ?, ?, ?, ?, ?,
+L 221:         ?, ?, ?, ?, ?, ?, ?,
+L 222:         ?, ?, ?, ?,
+L 223:         ?, ?, ?,
+L 224:         ?, ?, ?, ?, ?,
+L 225:         ?, ?,
+L 226:         ?, ?, ?, ?, ?,
+L 227:         ?, ?, ?, ?,
+L 228:         ?, ?, ?,
+L 229:         ?, ?, ?, ?, ?,
+L 230:         ?,
+L 231:         ?, ?
+L 232:       )
+L 233:     `);
+L 234: 
+L 235:     const engagement = payload.engagementAccepte ? 1 : 0;
+L 236: 
+L 237:     insertDetails.run(
+L 238:       detailsId,
+L 239:       userId,
+L 240:       payload.postNom || payload.nom || null,
+L 241:       payload.prenom || null,
+L 242:       payload.prenom2 || null,
+L 243:       payload.sexe || null,
+L 244:       payload.dateNaissance || null,
+L 245:       payload.lieuNaissance || null,
+L 246:       payload.province || null,
+L 247:       payload.ville || null,
+L 248:       payload.commune || null,
+L 249:       payload.quartier || null,
+L 250:       payload.avenue || null,
+L 251:       payload.numero || null,
+L 252:       payload.pays || 'RDC',
+L 253:       payload.groupeScout || null,
+L 254:       payload.numeroAffiliation || null,
+L 255:       payload.district || null,
+L 256:       payload.association || null,
+L 257:       payload.branche || null,
+L 258:       payload.dateEntreeScout || null,
+L 259:       payload.fonction || null,
+L 260:       payload.profession || null,
+L 261:       payload.niveauEtude || null,
+L 262:       payload.antecedentsMedicaux || null,
+L 263:       payload.camps ? JSON.stringify(payload.camps) : null,
+L 264:       payload.contacts ? JSON.stringify(payload.contacts) : null,
+L 265:       engagement,
+L 266:       engagement ? now : null,
+L 267:       payload.totem || null,
+L 268:       payload.fonctionsCamps || null,
+L 269:       payload.personnesPrevenir || null,
+L 270:       payload.conditionsEngagement || null,
+L 271:       payload.qrCodeData || null,
+L 272:       payload.address || payload.adresse || null,
+L 273:       payload.city || payload.ville || null,
+L 274:       payload.country || payload.pays || 'RDC',
+L 275:       payload.birthDate || payload.dateNaissance || null,
+L 276:       payload.educationLevel || payload.niveauEtude || null,
+L 277:       payload.educationField || null,
+L 278:       payload.educationInstitution || null,
+L 279:       payload.scoutFormation || null,
+L 280:       payload.scoutRole || payload.fonction || null,
+L 281:       payload.groupId || finalGroupId || null,
+L 282:       payload.profilePhotoUrl || payload.photoUrl || null,
+L 283:       payload.bio || null,
+L 284:       payload.attestationCampUrl || null,
+L 285:       now,
+L 286:       now
+L 287:     );
+L 288: 
+L 289:     console.log(`  [OK] UserDetails cree : ${detailsId}`);
+L 290:     console.log('=== REGISTER SCOUT TERMINE ===');
+L 291: 
+L 292:     // ========== TOKEN ==========
+L 293:     const token = jwt.sign(
+L 294:       { userId, role: 'utilisateur' },
+L 295:       JWT_SECRET,
+L 296:       { expiresIn: '30d' }
+L 297:     );
+L 298: 
+L 299:     const user = await db
+L 300:       .prepare('SELECT id, full_name, email, phone, role, is_active, created_at FROM users WHERE id = ?')
+L 301:       .get(userId);
+L 302: 
+L 303:     return res.status(201).json({
+L 304:       success: true,
+L 305:       message: 'Votre compte a ete cree avec succes. Il est en attente de validation par un administrateur.',
+L 306:       code: 'ACCOUNT_PENDING',
+L 307:       data: {
+L 308:         user: {
+L 309:           ...user,
+L 310:           is_active: 0,
+L 311:         },
+L 312:         token: null, // Pas de token tant que le compte n'est pas active
+L 313:         pending: true,
+L 314:       },
+L 315:     });
+L 316:   } catch (err) {
+L 317:     console.error('registerScout error:', err);
+L 318:     return res.status(500).json({
+L 319:       success: false,
+L 320:       message: 'Erreur lors de la creation du compte : ' + err.message,
+L 321:     });
+L 322:   }
+L 323: };
+
+
+================================================================================
+  FONCTION : verifyEmail
+  Lignes 328 a 443  (116 lignes)
+================================================================================
+
+L 328: exports.verifyEmail = async (req, res) => {
+L 329:   try {
+L 330:     const { email, code } = req.body;
+L 331:     if (!email || !code) {
+L 332:       return res.status(400).json({
+L 333:         success: false,
+L 334:         message: 'Email et code requis',
+L 335:       });
+L 336:     }
+L 337: 
+L 338:     // 1. Recuperer l'utilisateur
+L 339:     const user = await db.prepare(`
+L 340:       SELECT id, email, statut, registration_code, code_is_used,
+L 341:              code_expires_at, code_attempts, code_blocked_until,
+L 342:              fonction, proofs_submitted_at
+L 343:       FROM users WHERE LOWER(email) = LOWER(?)
+L 344:     `).get(email.trim());
+L 345: 
+L 346:     if (!user) {
+L 347:       return res.status(404).json({
+L 348:         success: false,
+L 349:         message: 'Utilisateur introuvable',
+L 350:       });
+L 351:     }
+L 352: 
+L 353:     // 2. Verifier si deja utilise
+L 354:     if (user.code_is_used == 1 || user.code_is_used === true) {
+L 355:       return res.status(400).json({
+L 356:         success: false,
+L 357:         message: 'Ce code a deja ete utilise',
+L 358:       });
+L 359:     }
+L 360: 
+L 361:     // 3. Verifier expiration
+L 362:     if (user.code_expires_at) {
+L 363:       const expiresAt = new Date(user.code_expires_at);
+L 364:       if (expiresAt < new Date()) {
+L 365:         return res.status(400).json({
+L 366:           success: false,
+L 367:           message: 'Code expire. Demandez un nouveau code.',
+L 368:         });
+L 369:       }
+L 370:     }
+L 371: 
+L 372:     // 4. Comparer le code
+L 373:     if (String(user.registration_code) !== String(code).trim()) {
+L 374:       const attempts = (user.code_attempts || 0) + 1;
+L 375:       let blockedUntil = null;
+L 376:       if (attempts >= 5) {
+L 377:         blockedUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+L 378:       }
+L 379:       await db.prepare(`
+L 380:         UPDATE users SET code_attempts = ?, code_blocked_until = ? WHERE id = ?
+L 381:       `).run(attempts, blockedUntil, user.id);
+L 382: 
+L 383:       return res.status(400).json({
+L 384:         success: false,
+L 385:         message: `Code incorrect (tentative ${attempts}/5)`,
+L 386:       });
+L 387:     }
+L 388: 
+L 389:     // 5. CODE CORRECT - Determiner le statut selon la FONCTION
+L 390:     const fonctionRaw = (user.fonction || '').toString().trim();
+L 391:     const fonction = fonctionRaw.toUpperCase();
+L 392:     const isRAS = fonction === 'RAS' || fonction === '' || fonction === 'AUCUN';
+L 393: 
+L 394:     const now = new Date().toISOString();
+L 395: 
+L 396:     if (isRAS) {
+L 397:       // RAS -> directement valide et actif
+L 398:       await db.prepare(`
+L 399:         UPDATE users
+L 400:         SET code_is_used = 1,
+L 401:             code_used_at = ?,
+L 402:             statut = 'validated',
+L 403:             is_active = 1,
+L 404:             validated_at = ?,
+L 405:             updated_at = ?
+L 406:         WHERE id = ?
+L 407:       `).run(now, now, now, user.id);
+L 408: 
+L 409:       console.log(`[verifyEmail] RAS user ${user.email} active automatiquement`);
+L 410:     } else {
+L 411:       // Non-RAS -> en attente des preuves
+L 412:       await db.prepare(`
+L 413:         UPDATE users
+L 414:         SET code_is_used = 1,
+L 415:             code_used_at = ?,
+L 416:             statut = 'proofs_pending',
+L 417:             updated_at = ?
+L 418:         WHERE id = ?
+L 419:       `).run(now, now, user.id);
+L 420: 
+L 421:       console.log(`[verifyEmail] user ${user.email} (${fonctionRaw}) -> proofs_pending`);
+L 422:     }
+L 423: 
+L 424:     return res.json({
+L 425:       success: true,
+L 426:       message: isRAS
+L 427:         ? 'Code verifie - Compte RAS active'
+L 428:         : 'Code verifie - Soumettez vos preuves de formation',
+L 429:       data: {
+L 430:         is_ras: isRAS,
+L 431:         fonction: fonctionRaw,
+L 432:         next_step: isRAS ? 'dashboard' : 'proofs',
+L 433:         statut: isRAS ? 'validated' : 'proofs_pending',
+L 434:       },
+L 435:     });
+L 436:   } catch (err) {
+L 437:     console.error('verifyEmail error:', err);
+L 438:     return res.status(500).json({
+L 439:       success: false,
+L 440:       message: 'Erreur serveur : ' + err.message,
+L 441:     });
+L 442:   }
+L 443: };
+
+
+================================================================================
+  AUTRES FONCTIONS DISPONIBLES
+================================================================================
+
+L  15: exports.login = async (req, res) => {
+L  83: exports.registerScout = async (req, res) => {
+L 328: exports.verifyEmail = async (req, res) => {
+L 448: exports.resendVerification = async (req, res) => {
+L 474: exports.listPendingUsers = async (req, res) => {
+L 501: exports.activateUser = async (req, res) => {
+L 551: exports.deactivateUser = async (req, res) => {
+L 565: exports.me = async (req, res) => {
+L 658: exports.validateUser = async (req, res) => {
+L 757: exports.verifyEmailV2 = async (req, res) => {
+L 828: exports.validateUserV2 = async (req, res) => {
+
+
+================================================================================
+  CONFIGURATION DB (database.js)
+================================================================================
+
+// =============================================================
+// ChefUnitPlus - Configuration Database
+// PostgreSQL UNIQUEMENT - Wrapper compatible SQLite
+// =============================================================
+
+const { Pool } = require('pg');
+
+if (!process.env.DATABASE_URL) {
+  console.error('ERREUR : DATABASE_URL non defini');
+  process.exit(1);
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+});
+
+// Test de connexion
+pool.query('SELECT NOW()')
+  .then(() => console.log('Base de donnees PostgreSQL connectee'))
+  .catch(err => {
+    console.error('Erreur DB PostgreSQL :', err.message);
+    process.exit(1);
+  });
+
+// =============================================================
+// HELPER : Convertir les ? en $1, $2, ...
+// =============================================================
+function toPgSql(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => `$${++i}`);
+}
+
+// =============================================================
+// WRAPPER SQLite-like
+// IMPORTANT : les methodes get/all/run retournent des PROMESSES
+// Il faut utiliser await devant :
+//   const user = await db.prepare('...').get(id);
+// =============================================================
+const db = {
+  prepare: (sql) => ({
+    // Retourne UNE ligne ou null
+    get: (...params) => {
+      const pgSql = toPgSql(sql);
+      return pool.query(pgSql, params)
+        .then(r => r.rows[0] || null)
+        .catch(err => {
+          console.error('[db.get] SQL:', pgSql, 'Params:', params);
+          console.error('[db.get] Error:', err.message);
+          throw err;
+        });
+    },
+
+    // Retourne TOUTES les lignes (tableau)
+    all: (...params) => {
+      const pgSql = toPgSql(sql);
+      return pool.query(pgSql, params)
+        .then(r => r.rows || [])
+        .catch(err => {
+          console.error('[db.all] SQL:', pgSql, 'Params:', params);
+          console.error('[db.all] Error:', err.message);
+          throw err;
+        });
+    },
+
+    // Execute et retourne { changes, lastInsertRowid }
+    run: (...params) => {
+      const pgSql = toPgSql(sql);
+      return pool.query(pgSql, params)
+        .then(r => ({
+          changes: r.rowCount,
+          rows: r.rows,
+        }))
+        .catch(err => {
+          console.error('[db.run] SQL:', pgSql, 'Params:', params);
+          console.error('[db.run] Error:', err.message);
+          throw err;
+        });
+    },
+  }),
+
+  // API moderne (async/await direct)
+  query: (sql, params = []) => {
+    const pgSql = toPgSql(sql);
+    return pool.query(pgSql, params).then(r => r.rows || []);
+  },
+
+  queryOne: (sql, params = []) => {
+    const pgSql = toPgSql(sql);
+    return pool.query(pgSql, params).then(r => r.rows[0] || null);
+  },
+
+  execute: (sql, params = []) => {
+    const pgSql = toPgSql(sql);
+    return pool.query(pgSql, params).then(r => ({
+      changes: r.rowCount,
+      rows: r.rows,
+    }));
+  },
+
+  close: () => pool.end(),
+  pool,
+};
+
+module.exports = db;
+
+
+
+================================================================================
+  .env (valeurs masquees)
+================================================================================
+
+# =====================================================================
+#  CHEFUNITPLUS - CONFIGURATION LOCALE (DEV)
+# =====================================================================
+NODE_ENV=development
+PORT=3000
+
+# --- Base de donnees SQLite locale ---
+DB_TYPE=sqlite
+DB_PATH=./database/chefunitplus.db
+
+# --- JWT ---
+JWT_SECRET=***MASQUE***
+
+# --- CORS / URLs ---
+FRONTEND_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000
+
+# --- Email (desactive en local) ---
+EMAIL_ENABLED=false
+
+# --- Uploads ---
+UPLOAD_DIR=./uploads

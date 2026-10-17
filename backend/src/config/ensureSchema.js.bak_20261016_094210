@@ -1,0 +1,213 @@
+// =============================================================
+// ChefUnitPlus - Auto-creation des tables au demarrage
+// Idempotent : ne fait rien si les tables existent deja
+// =============================================================
+
+const db = require('./database');
+
+const TABLES = [
+  // users
+  `CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    full_name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+  confirmation_email TEXT,
+    phone TEXT,
+    password_hash TEXT NOT NULL,
+    role TEXT DEFAULT 'apprenant',
+    avatar_url TEXT,
+    is_active INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // formations
+  `CREATE TABLE IF NOT EXISTS formations (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    price REAL DEFAULT 0,
+    currency TEXT DEFAULT 'USD',
+    cover_image TEXT,
+    director_id TEXT REFERENCES users(id),
+    is_published INTEGER DEFAULT 0,
+    enrolled_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // modules
+  `CREATE TABLE IF NOT EXISTS modules (
+    id TEXT PRIMARY KEY,
+    formation_id TEXT REFERENCES formations(id) ON DELETE CASCADE,
+    trainer_id TEXT REFERENCES users(id),
+    title TEXT NOT NULL,
+    description TEXT,
+    duration INTEGER DEFAULT 0,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // lessons
+  `CREATE TABLE IF NOT EXISTS lessons (
+    id TEXT PRIMARY KEY,
+    module_id TEXT REFERENCES modules(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT,
+    type TEXT DEFAULT 'text',
+    video_url TEXT,
+    pdf_url TEXT,
+    audio_url TEXT,
+    duration INTEGER DEFAULT 0,
+    order_index INTEGER DEFAULT 0,
+    is_preview INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // enrollments
+  `CREATE TABLE IF NOT EXISTS enrollments (
+    id TEXT PRIMARY KEY,
+    learner_id TEXT REFERENCES users(id),
+    formation_id TEXT REFERENCES formations(id),
+    formation_title TEXT,
+    status TEXT DEFAULT 'pendingPayment',
+    amount_paid REAL DEFAULT 0,
+    progress_percent INTEGER DEFAULT 0,
+    payment_ref TEXT,
+    director_comment TEXT,
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    paid_at TIMESTAMP,
+    validated_at TIMESTAMP
+  )`,
+
+  // payments
+  `CREATE TABLE IF NOT EXISTS payments (
+    id TEXT PRIMARY KEY,
+    enrollment_id TEXT REFERENCES enrollments(id),
+    order_number TEXT UNIQUE,
+    transaction_id TEXT,
+    amount REAL,
+    currency TEXT DEFAULT 'USD',
+    status TEXT,
+    provider TEXT DEFAULT 'flexpaie',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // certificates
+  `CREATE TABLE IF NOT EXISTS certificates (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id),
+    formation_id TEXT REFERENCES formations(id),
+    certificate_number TEXT UNIQUE,
+    pdf_url TEXT,
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP
+  )`,
+
+  // notifications
+  `CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id),
+    type TEXT,
+    title TEXT,
+    message TEXT,
+    is_read INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // messages
+  `CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY,
+    sender_id TEXT REFERENCES users(id),
+    receiver_id TEXT REFERENCES users(id),
+    subject TEXT,
+    content TEXT,
+    is_read INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+// news (actualites scoutes)
+`CREATE TABLE IF NOT EXISTS news (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT,
+  image_url TEXT,
+  author_id TEXT,
+  category TEXT DEFAULT 'actualite',
+  is_published INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`,
+
+// videos (videos des quartiers)
+`CREATE TABLE IF NOT EXISTS videos (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  video_url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  author_id TEXT,
+  duration INTEGER DEFAULT 0,
+  views INTEGER DEFAULT 0,
+  is_published INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`,];
+
+async function ensureSchema() {
+  console.log('[ensureSchema] Verification des tables...');
+
+  // Migration : ajouter confirmation_email si manquante (PostgreSQL)
+  try {
+    const result = await db.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'users' AND column_name = 'confirmation_email'
+    `);
+    const hasCol = result.rows && result.rows.length > 0;
+    if (!hasCol) {
+      await db.query('ALTER TABLE users ADD COLUMN confirmation_email TEXT');
+      console.log('[ensureSchema] [OK] Colonne confirmation_email ajoutee');
+    }
+  } catch (e) {
+    console.log('[ensureSchema] [i] confirmation_email : ' + e.message);
+  }
+
+  // Migrations : nouvelles colonnes users
+  try {
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS current_formation_id TEXT');
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS formation_started_at TIMESTAMP');
+    console.log('[ensureSchema] [OK] Colonnes users ajoutees');
+  } catch (e) {
+    console.log('[ensureSchema] [i] Migrations users : ' + e.message);
+  }
+
+  // Migrations : nouvelles colonnes enrollments
+  try {
+    await db.query('ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true');
+    await db.query('ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP');
+    console.log('[ensureSchema] [OK] Colonnes enrollments ajoutees');
+  } catch (e) {
+    console.log('[ensureSchema] [i] Migrations enrollments : ' + e.message);
+  }
+  let created = 0;
+
+  for (const sql of TABLES) {
+    try {
+      await db.query(sql);
+      const tableName = sql.match(/CREATE TABLE IF NOT EXISTS (\w+)/)[1];
+      console.log(`  [OK] ${tableName}`);
+      created++;
+    } catch (err) {
+      console.error(`  [XX] Erreur : ${err.message}`);
+    }
+  }
+
+  console.log(`[ensureSchema] ${created}/${TABLES.length} tables verifiees`);
+  return created;
+}
+
+module.exports = { ensureSchema };

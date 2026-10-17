@@ -1,0 +1,187 @@
+﻿// ChefUnitPlus - Point d'entree
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
+import 'services/deposit_module_service.dart';
+import 'services/module_invitation_service.dart';
+import 'services/qr_service.dart';
+import 'services/notification_service.dart';
+import 'services/message_service.dart';
+
+import 'app.dart';
+import 'controllers/auth_controller.dart';
+import 'controllers/certificate_controller.dart';
+import 'controllers/complaint_controller.dart';
+import 'controllers/dashboard_controller.dart';
+import 'controllers/enrollment_controller.dart';
+import 'controllers/formation_controller.dart';
+import 'controllers/lesson_controller.dart';
+import 'controllers/module_controller.dart';
+import 'controllers/password_request_controller.dart';
+import 'controllers/payment_controller.dart';
+import 'controllers/register_controller.dart';
+import 'controllers/scout_group_controller.dart';
+import 'controllers/theme_controller.dart';
+import 'controllers/locale_controller.dart';
+import 'controllers/user_controller.dart';
+import 'controllers/user_activation_controller.dart';
+import 'core/errors/error_handler.dart';
+import 'services/api_client.dart';
+import 'services/auth_service.dart';
+import 'services/certificate_service.dart';
+import 'services/complaint_service.dart';
+import 'services/enrollment_service.dart';
+import 'services/formation_service.dart';
+import 'services/lesson_service.dart';
+import 'services/module_service.dart';
+import 'services/password_request_service.dart';
+import 'services/payment_service.dart';
+import 'services/payment_request_service.dart';
+import 'services/register_service.dart';
+import 'services/scout_group_service.dart';
+import 'services/stats_service.dart';
+import 'services/storage_service.dart';
+import 'services/user_service.dart';
+import 'services/payment_numbers_service.dart';
+import 'services/user_activation_service.dart';
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  ErrorHandler.installGlobalHandler();
+
+  final apiClient = ApiClient();
+  final storageService = StorageService();
+  final authService = AuthService(api: apiClient, storage: storageService);
+
+  // ============ CHARGEMENT DU TOKEN AU DEMARRAGE ============
+  // Sans ceci, apres un refresh de page, ApiClient._token est null
+  // -> toutes les requetes authentifiees echouent en 401
+  // ============ CHARGEMENT ROBUSTE DU TOKEN ============
+  // Lit d'abord getUser().token, puis fallback sur getToken() direct
+  try {
+    String? foundToken;
+    String? source;
+
+    // 1) Essayer depuis getUser()
+    final savedUser = await storageService.getUser();
+    if (savedUser != null &&
+        savedUser.token != null &&
+        savedUser.token!.isNotEmpty) {
+      foundToken = savedUser.token;
+      source = 'getUser()';
+    }
+
+    // 2) Fallback : lire directement auth_token
+    if (foundToken == null) {
+      final directToken = await storageService.getToken();
+      if (directToken != null && directToken.isNotEmpty) {
+        foundToken = directToken;
+        source = 'getToken() direct';
+      }
+    }
+
+    // 3) Appliquer
+    if (foundToken != null && foundToken.isNotEmpty) {
+      apiClient.setToken(foundToken);
+      debugPrint('[main] Token charge depuis $source');
+    } else {
+      debugPrint('[main] Pas de token sauvegarde (utilisateur non connecte)');
+    }
+  } catch (e, st) {
+    debugPrint('[main] Erreur chargement token : $e');
+    debugPrint('$st');
+  }
+  // =========================================================
+  runApp(
+    MultiProvider(
+      providers: [
+          ChangeNotifierProvider(create: (_) => ModuleInvitationService(apiClient)),
+        ChangeNotifierProvider(create: (_) => DepositModuleService(apiClient)),
+        ChangeNotifierProvider(create: (_) => NotificationService(apiClient)),
+        Provider(create: (_) => PaymentRequestService(apiClient)),
+        ChangeNotifierProvider(create: (_) => MessageService(apiClient)),
+        ChangeNotifierProvider(create: (_) => QrService(apiClient)),
+        Provider<ApiClient>.value(value: apiClient),
+        Provider<StorageService>.value(value: storageService),
+        Provider<AuthService>.value(value: authService),
+
+        Provider<RegisterService>(create: (_) => RegisterService(apiClient),
+        ),
+        Provider<PasswordRequestService>(create: (_) => PasswordRequestService(apiClient),
+        ),
+        Provider<ScoutGroupService>(create: (_) => ScoutGroupService(apiClient),
+        ),
+        Provider<UserService>(create: (_) => UserService(apiClient),
+        ),
+        Provider<PaymentNumbersService>(create: (_) => PaymentNumbersService(apiClient),
+        ),
+    Provider<UserActivationService>(create: (_) => UserActivationService(apiClient)),
+        Provider<FormationService>(create: (_) => FormationService(apiClient)),
+        Provider<ModuleService>(create: (_) => ModuleService(apiClient)),
+        Provider<LessonService>(create: (_) => LessonService(apiClient)),
+        ChangeNotifierProvider(
+          create: (_) => EnrollmentService(apiClient),
+        ),
+        Provider<PaymentService>(create: (_) => PaymentService()),
+        Provider<CertificateService>(create: (_) => CertificateService(apiClient),
+        ),
+        Provider<ComplaintService>(create: (_) => ComplaintService(apiClient),
+        ),
+        ChangeNotifierProvider(create: (_) => StatsService(apiClient)),
+        ChangeNotifierProvider(create: (_) => AuthController(
+            service: authService,
+            api: apiClient,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => RegisterController(ctx.read<RegisterService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) =>
+              PasswordRequestController(ctx.read<PasswordRequestService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => UserController(ctx.read<UserService>()),
+        ),
+    ChangeNotifierProvider(
+      create: (ctx) => UserActivationController(ctx.read<UserActivationService>()),
+    ),
+        ChangeNotifierProvider(
+          create: (ctx) => FormationController(ctx.read<FormationService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => ModuleController(ctx.read<ModuleService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => LessonController(ctx.read<LessonService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => EnrollmentController(ctx.read<EnrollmentService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) =>
+              PaymentController(service: ctx.read<PaymentService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => DashboardController(ctx.read<StatsService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) =>
+              CertificateController(ctx.read<CertificateService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => ComplaintController(ctx.read<ComplaintService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => ScoutGroupController(ctx.read<ScoutGroupService>()),
+        ),
+        ChangeNotifierProvider(create: (_) => ThemeController()),
+        ChangeNotifierProvider(create: (_) => LocaleController()),
+      ],
+      child: const ChefUnitPlusApp(),
+    ),
+  );
+}
+
+
+
+

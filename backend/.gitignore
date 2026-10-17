@@ -1,0 +1,19 @@
+node_modules/
+.env
+.env.local
+*.log
+*.db
+*.db-journal
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+coverage/
+dist/
+uploads/*
+!uploads/.gitkeep
+# Backups de scripts
+_backup_*/
+_backups/
+_backups_archive_*.zip
+_archives_backups/

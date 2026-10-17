@@ -1,0 +1,105 @@
+﻿// =============================================================
+// ChefUnitPlus - Configuration Database
+// PostgreSQL UNIQUEMENT - Wrapper compatible SQLite
+// =============================================================
+
+const { Pool } = require('pg');
+
+if (!process.env.DATABASE_URL) {
+  console.error('ERREUR : DATABASE_URL non defini');
+  process.exit(1);
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+});
+
+// Test de connexion
+pool.query('SELECT NOW()')
+  .then(() => console.log('Base de donnees PostgreSQL connectee'))
+  .catch(err => {
+    console.error('Erreur DB PostgreSQL :', err.message);
+    process.exit(1);
+  });
+
+// =============================================================
+// HELPER : Convertir les ? en $1, $2, ...
+// =============================================================
+function toPgSql(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => `$${++i}`);
+}
+
+// =============================================================
+// WRAPPER SQLite-like
+// IMPORTANT : les methodes get/all/run retournent des PROMESSES
+// Il faut utiliser await devant :
+//   const user = await db.prepare('...').get(id);
+// =============================================================
+const db = {
+  prepare: (sql) => ({
+    // Retourne UNE ligne ou null
+    get: (...params) => {
+      const pgSql = toPgSql(sql);
+      return pool.query(pgSql, params)
+        .then(r => r.rows[0] || null)
+        .catch(err => {
+          console.error('[db.get] SQL:', pgSql, 'Params:', params);
+          console.error('[db.get] Error:', err.message);
+          throw err;
+        });
+    },
+
+    // Retourne TOUTES les lignes (tableau)
+    all: (...params) => {
+      const pgSql = toPgSql(sql);
+      return pool.query(pgSql, params)
+        .then(r => r.rows || [])
+        .catch(err => {
+          console.error('[db.all] SQL:', pgSql, 'Params:', params);
+          console.error('[db.all] Error:', err.message);
+          throw err;
+        });
+    },
+
+    // Execute et retourne { changes, lastInsertRowid }
+    run: (...params) => {
+      const pgSql = toPgSql(sql);
+      return pool.query(pgSql, params)
+        .then(r => ({
+          changes: r.rowCount,
+          rows: r.rows,
+        }))
+        .catch(err => {
+          console.error('[db.run] SQL:', pgSql, 'Params:', params);
+          console.error('[db.run] Error:', err.message);
+          throw err;
+        });
+    },
+  }),
+
+  // API moderne (async/await direct)
+  query: (sql, params = []) => {
+    const pgSql = toPgSql(sql);
+    return pool.query(pgSql, params).then(r => r.rows || []);
+  },
+
+  queryOne: (sql, params = []) => {
+    const pgSql = toPgSql(sql);
+    return pool.query(pgSql, params).then(r => r.rows[0] || null);
+  },
+
+  execute: (sql, params = []) => {
+    const pgSql = toPgSql(sql);
+    return pool.query(pgSql, params).then(r => ({
+      changes: r.rowCount,
+      rows: r.rows,
+    }));
+  },
+
+  close: () => pool.end(),
+  pool,
+};
+
+module.exports = db;
