@@ -1,4 +1,13 @@
-﻿# Flutter
+﻿# Secrets
+.env
+.env.*
+*.env
+!*.env.example
+!backend/.env.example
+backend/.env.backup*
+backend/.env.bak*
+
+# Flutter
 frontend/build/
 frontend/.dart_tool/
 frontend/.flutter-plugins
@@ -8,48 +17,36 @@ frontend/ios/Pods/
 frontend/android/.gradle/
 frontend/android/local.properties
 
-# Node.js
+# Node
 backend/node_modules/
-backend/_backend_*.log
 backend/backups_*/
-backend/_DEBUG_*.txt
+backend/_backend_*.log
 
-# Base de données (NE PAS versionner)
+# DB
 backend/database/*.db
 backend/database/*.db-shm
 backend/database/*.db-wal
 backend/database/*.bak
 
-# Uploads utilisateur (NE PAS versionner)
+# Uploads
 backend/uploads/proofs/*
 !backend/uploads/proofs/.gitkeep
 
-# Fichiers de debug/temp
+# Debug/Temp
 _DIAG_*/
 _FIX_*/
 _EXTRACT_*/
 _ARCHIVES_CHEFUNIT/
+_EXPORT_DB_*/
 *.log
 *.bak
 *.backup
 *.orig
 _DEBUG_*.txt
 
-# IDE
+# IDE/OS
 .vscode/
 .idea/
 *.iml
-
-# OS
 .DS_Store
 Thumbs.db
-
-# Sécurité (NE JAMAIS versionner)
-.env
-.env.local
-*.pem
-*.key
-
-# Secrets - NE JAMAIS VERSIONNER
-backend/.env*
-!backend/.env.example
